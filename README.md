@@ -1,2 +1,7 @@
 # StaticColectorBundle
-add static collector for control you static!
+symphony bundle that simplifies the work with statics
+
+## install
+```shel
+composer require Skrip42/static-collector-bundle
+```
