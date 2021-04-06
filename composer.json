@@ -1,0 +1,27 @@
+{
+    "name":"skrip42/static-collector-bundle",
+    "type":"symfony-bundle",
+    "description":"add static collector for control you static!",
+    "homepage":"https://github.com/skrip42/StaticCollectorBundle",
+    "version":"v1.0.0",
+    "license":"MIT",
+    "minimum-stability":"dev",
+    "require":{
+        "php":"^7.1",
+        "symfony/webpack-encore-bundle": "^1.7",
+        "twig/twig": "^2.12|^3.0",
+        "symfony/twig-bundle": "5.*",
+        "skrip42/twig-postprocessor-bundle": "^1.0.0"
+    },
+    "authors": [
+        {
+            "name": "skrip42",
+            "email": "skrip42@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Skrip42\\Bundle\\StaticCollectorBundle\\":""
+        }
+    }
+}

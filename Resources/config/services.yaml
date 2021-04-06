@@ -1,0 +1,15 @@
+services:
+  _defaults:
+      autowire: true      # Automatically injects dependencies in your services.
+      autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+  Skrip42\Bundle\StaticCollectorBundle\StaticCollector:
+    arguments: ['@webpack_encore.tag_renderer']
+    tags: [twig.runtime]
+
+  Skrip42\Bundle\StaticCollectorBundle\Twig\StaticCollectorPostprocessor:
+    tags: [twig.postprocessor]
+
+  Skrip42\Bundle\StaticCollectorBundle\Twig\StaticCollectorExtension:
+    tags: [twig.extension]
+
