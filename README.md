@@ -7,6 +7,7 @@ The standard statics connection system offers 3 options for their connection:
 - include statics in the template of a included widget or form element, which leads to duplicates and "splashing" of static across your final html
 - include all static in the constructor template, which makes control more difficult and violates the dependency principle
 - include all the statics in the base template, which leads to an unjustified increase in the size of the loaded statics and also violates the principle of dependencies
+ 
 this bundle offers an alternative without these disadvantages
 
 ## how in works:
