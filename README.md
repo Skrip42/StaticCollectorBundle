@@ -19,7 +19,7 @@ After the template is compiled into html, the statics collector places the stati
 composer require Skrip42/static-collector-bundle
 ```
 ## usage:
-- just put "{% script_place %}" and "{% style_place %}" tags in your base template where you want to see your included scripts and styles:
+- just put "{% static_place 'script' %}" and "{% static_place 'style' %}" tags in your base template where you want to see your included scripts and styles:
 ```twig
 <!DOCTYPE html>
 <html>
