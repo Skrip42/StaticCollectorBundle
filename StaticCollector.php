@@ -6,75 +6,125 @@ use Symfony\WebpackEncoreBundle\Asset\TagRenderer;
 class StaticCollector
 {
     private $tagRenderer;
-    private $asset_collector = [];
-    private $js_src_collector = [];
-    private $css_src_collector = [];
+    private $staticCollection = [];
 
     public function __construct(TagRenderer $tagRenderer)
     {
         $this->tagRenderer = $tagRenderer;
     }
 
-    public function clear()
+    public function clear($group)
     {
-        $this->asset_collector = [];
-        $this->js_src_collector = [];
-        $this->css_src_collector = [];
+        if (empty($group)) {
+            $this->staticCollection = [];
+        }
+        if (!empty($this->staticCollection[$group])) {
+            $this->staticCollection[$group] = [];
+        }
     }
 
     /**
      * Get array of compiled style tags
      */
-    public function getStyleTags()
+    public function getStyleTags($group)
     {
-        $styleTags = [];
-        $this->css_src_collector = array_unique($this->css_src_collector);
-        //collect simple static tags
-        foreach ($this->css_src_collector as $styleUrl) {
-            $styleTags[] = '<link rel="stylesheet" href="' . $styleUrl . '">';
+        $entries = [];
+        //get entries from group
+        if (!empty($group)) {
+            $entries = array_filter($this->staticCollection[$group], function ($e) {
+                return $e['type'] == 'style' || $e['type'] == 'asset';
+            });
+        } else {
+            foreach ($this->staticCollection as $group) {
+                $entries = array_merge($entries, array_filter($group, function ($e) {
+                    return $e['type'] == 'style' || $e['type'] == 'asset';
+                }));
+            }
         }
-        //collect asset link tags
-        foreach ($this->asset_collector as $asset) {
-            $styleTags = array_merge(
-                $styleTags,
-                preg_split(
-                    '~(?=<link)~',
-                    $this->tagRenderer->renderWebpackLinkTags(...$asset)
-                )
-            );
-        }
-        $styleTags = array_filter($styleTags, function ($style) {
-            return !empty($style);
+
+        //sort entries
+        usort($entries, function ($e1, $e2) {
+            return $e1['order'] <=> $e2['order'];
         });
+        //compile entries to links
+        $styleTags = [];
+        foreach ($entries as $entry) {
+            if ($entry['type'] == 'style') {
+                $styleTags[] = '<link rel="stylesheet" href="' . $entry['url'] . '">';
+            } else if ($entry['type'] == 'asset') {
+                $styleTags = array_merge(
+                    $styleTags,
+                    preg_split(
+                        '~(?=<link)~',
+                        $this->tagRenderer->renderWebpackLinkTags(
+                            $entry['entry'],
+                            $entry['packageName'],
+                            $entry['entrypointName'],
+                            $entry['attributes']
+                        )
+                    )
+                );
+            }
+        }
+        //drop empty links
+        $styleTags = array_filter($styleTags, function ($e) {
+            return !empty($e);
+        });
+        //unique links
+        $styleTags = array_unique($styleTags);
+
         return $styleTags;
     }
 
     /**
      * Get array of compiled script tags
      */
-    public function getScriptTags()
+    public function getScriptTags($group)
     {
-        $scriptTags = [];
-        $this->js_src_collector = array_unique($this->js_src_collector);
-        //collect simple script tags
-        foreach ($this->js_src_collector as $scriptUrl) {
-            $scriptTags[] = '<script type="application/javascript" src="'
-                . $scriptUrl
-                . '"></script>';
+        $entries = [];
+        //get entries from group
+        if (!empty($group)) {
+            $entries = array_filter($this->staticCollection[$group], function ($e) {
+                return $e['type'] == 'script' || $e['type'] == 'asset';
+            });
+        } else {
+            foreach ($this->staticCollection as $group) {
+                $entries = array_merge($entries, array_filter($group, function ($e) {
+                    return $e['type'] == 'script' || $e['type'] == 'asset';
+                }));
+            }
         }
-        //collect asset script tags
-        foreach ($this->asset_collector as $asset) {
-            $scriptTags = array_merge(
-                $scriptTags,
-                preg_split(
-                    '~(?=<script)~',
-                    $this->tagRenderer->renderWebpackScriptTags(...$asset)
-                )
-            );
-        }
-        $scriptTags = array_filter($scriptTags, function ($script) {
-            return !empty($script);
+
+        //sort entries
+        usort($entries, function ($e1, $e2) {
+            return $e1['order'] <=> $e2['order'];
         });
+        //compile entries to scripts
+        $scriptTags = [];
+        foreach ($entries as $entry) {
+            if ($entry['type'] == 'script') {
+                $scriptTags[] = '<script type="application/javascript" src="' . $entry['url'] . '"></script>';
+            } else if ($entry['type'] == 'asset') {
+                $scriptTags = array_merge(
+                    $scriptTags,
+                    preg_split(
+                        '~(?=<script)~',
+                        $this->tagRenderer->renderWebpackScriptTags(
+                            $entry['entry'],
+                            $entry['packageName'],
+                            $entry['entrypointName'],
+                            $entry['attributes']
+                        )
+                    )
+                );
+            }
+        }
+        //drop empty scripts
+        $scriptTags = array_filter($scriptTags, function ($e) {
+            return !empty($e);
+        });
+        //unique scripts
+        $scriptTags = array_unique($scriptTags);
         return $scriptTags;
     }
 
@@ -83,70 +133,37 @@ class StaticCollector
      */
     public function addStatic(
         string $entryNameOrSource,
+        string $group = 'default',
+        int $order = 1000,
         string $packageName = '',
         string $entrypointName = '_default',
         $attributes = []
     ) {
-        if (strpos($entryNameOrSource, '.js')) {
-            $this->addScript($entryNameOrSource);
-        } else if (strpos($entryNameOrSource, '.css')) {
-            $this->addStyle($entryNameOrSource);
-        } else {
-            $this->addAsset(
-                $entryNameOrSource,
-                empty($packageName) ? null : $packageName,
-                $entrypointName,
-                empty($attributes) ? [] : (is_array($attributes) ? $attributes : explode(',', $attributes))
-            );
+        if (empty($this->staticCollection[$group])) {
+            $this->staticCollection[$group] = [];
         }
-    }
 
-    /**
-     * Add script url to collector
-     */
-    private function addScript(
-        string $scriptUrl
-    ) {
-        $this->js_src_collector[] = $scriptUrl;
-    }
-
-    /**
-     * Add style url to collector
-     */
-    private function addStyle(
-        string $scriptUrl
-    ) {
-        $this->js_src_collector[] = $scriptUrl;
-    }
-
-    /**
-     * Add asset to collector (with unique control)
-     */
-    private function addAsset(
-        string $entryName,
-        string $packageName = null,
-        string $entrypointName = '_default',
-        array $attributes = []
-    ) {
-        $this->asset_collector[$this->getAssetHash(
-            $entryName,
-            $packageName,
-            $entrypointName,
-            $attributes
-        )] = [
-            $entryName,
-            $packageName,
-            $entrypointName,
-            $attributes
-        ];
-    }
-
-    private function getAssetHash(
-        string $entryName,
-        string $packageName = null,
-        string $entrypointName = '_default',
-        array $attributes = []
-    ) {
-        return serialize([$entryName, $packageName, $entrypointName, $attributes]);
+        if (strpos($entryNameOrSource, '.js')) {
+            $this->staticCollection[$group][] = [
+                'url'   => $entryNameOrSource,
+                'order' => $order,
+                'type'  => 'script'
+            ];
+        } else if (strpos($entryNameOrSource, '.css')) {
+            $this->staticCollection[$group][] = [
+                'url'   => $entryNameOrSource,
+                'order' => $order,
+                'type'  => 'style'
+            ];
+        } else {
+            $this->staticCollection[$group][] = [
+                'entry'          => $entryNameOrSource,
+                'packageName'    => empty($packageName) ? null : $packageName,
+                'order'          => $order,
+                'entrypointName' => $entrypointName,
+                'attributes'     => empty($attributes) ? [] : (is_array($attributes) ? $attributes : explode(',', $attributes)),
+                'type'           => 'asset'
+            ];
+        }
     }
 }

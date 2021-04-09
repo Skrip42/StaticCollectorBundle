@@ -7,13 +7,13 @@ use Skrip42\Bundle\StaticCollectorBundle\StaticCollector;
 
 class DefineStaticNode extends Node
 {
-    public function __construct(
-        array $attributes,
-        $line,
-        $tag = null
-    ) {
-        parent::__construct([], $attributes, $line, $tag);
-    }
+    // public function __construct(
+    //     array $attributes,
+    //     $line,
+    //     $tag = null
+    // ) {
+    //     parent::__construct([], $attributes, $line, $tag);
+    // }
 
     public function compile(Compiler $compiler): void
     {
@@ -31,6 +31,16 @@ class DefineStaticNode extends Node
                 . $this->getAttribute('entryName')
                 . '"'
             );
+        if ($this->hasAttribute('group')) {
+            $compiler->write(',"' . $this->getAttribute('group') . '"');
+        } else {
+            $compiler->write(',"default"');
+        }
+        if ($this->hasAttribute('order')) {
+            $compiler->write(',"' . $this->getAttribute('order') . '"');
+        } else {
+            $compiler->write(",1000");
+        }
         if ($this->hasAttribute('package')) {
             $compiler->write(',"' . $this->getAttribute('package') . '"');
         } else {

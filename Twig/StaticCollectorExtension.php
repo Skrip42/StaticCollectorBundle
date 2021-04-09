@@ -17,8 +17,7 @@ class StaticCollectorExtension extends AbstractExtension
     {
         return [
             new StaticTokenParser($this->staticCollector),
-            new ScriptPlaceTokenParser($this->staticCollector),
-            new StylePlaceTokenParser($this->staticCollector)
+            new StaticPlaceTokenParser($this->staticCollector)
         ];
     }
 }
