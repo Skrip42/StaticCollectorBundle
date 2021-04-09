@@ -1,5 +1,4 @@
-# StaticCollectorBundle
-symphony bundle that simplifies the work with statics
+symfony bundle that simplifies the work with statics
 
 ## premise:
 Often your included widgets or custom form UI elements need their own styles and scripts.
