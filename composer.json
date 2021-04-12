@@ -3,7 +3,7 @@
     "type":"symfony-bundle",
     "description":"add static collector for control you static!",
     "homepage":"https://github.com/skrip42/StaticCollectorBundle",
-    "version":"v2.0.0",
+    "version":"v2.0.2",
     "license":"MIT",
     "minimum-stability":"dev",
     "require":{
