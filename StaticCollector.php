@@ -26,7 +26,7 @@ class StaticCollector
     /**
      * Get array of compiled style tags
      */
-    public function getStyleTags($group)
+    public function getStyleTags($group = 'default')
     {
         $entries = [];
         //get entries from group
@@ -79,7 +79,7 @@ class StaticCollector
     /**
      * Get array of compiled script tags
      */
-    public function getScriptTags($group)
+    public function getScriptTags($group = 'default')
     {
         $entries = [];
         //get entries from group
