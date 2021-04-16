@@ -6,7 +6,9 @@ use Symfony\WebpackEncoreBundle\Asset\TagRenderer;
 class StaticCollector
 {
     private $tagRenderer;
-    private $staticCollection = [];
+    private $staticCollection = [
+        'default' => []
+    ];
 
     public function __construct(TagRenderer $tagRenderer)
     {
